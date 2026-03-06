@@ -1,0 +1,30 @@
+services:
+  # 1. OWASP ZAP (Imagem Oficial Atualizada - GitHub Registry)
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    container_name: owasp-zap
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    command: >
+      zap.sh -daemon -host 0.0.0.0 -port 8080 
+      -config api.addrs.addr.name=.* 
+      -config api.addrs.addr.regex=true 
+      -config api.key=1234567890 
+      -config network.connection.http.timeout=60000
+    volumes:
+      - ./zap_reports:/scripts
+      - ./zap_reports:/zap/wrk
+      - ./zap_reports:/home/zap/
+    networks:
+      - scan-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  scan-network:
+    driver: bridge
